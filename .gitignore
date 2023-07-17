@@ -1,0 +1,5 @@
+*.session
+*.session-journal
+Debug.py
+.vscode
+__pycache__
