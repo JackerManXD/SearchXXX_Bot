@@ -62,7 +62,7 @@ def extractImg(File: str, message: str) -> list:
 
 def download(url:str) -> str:
     ydl_opts = {
-        'format': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+        'format': 'bestvideo+bestaudio/best',
         'outtmpl': '%(title)s.%(ext)s',
     }
     with YoutubeDL(ydl_opts) as ydl:
