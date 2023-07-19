@@ -4,3 +4,4 @@ TgCrypto
 requests
 beautifulsoup4
 yt_dlp
+opencv-contrib-python-headless
