@@ -37,16 +37,16 @@ def mostrar_info(app, message):
     file = download(message.text)
     
     sms.edit_text('Uploading video...')
-    video = app.send_video(-1001989558782, file[0], duration=extractSeconds(file[0]), thumb=file[1])
-    
+    video = app.send_video(-1001515779942, file[0], duration=extractSeconds(file[0]), thumb=file[1])
+
     sms.edit_text('**Extracting images...**')
     list_img = extractImg(file[0], message)
     
     caption = show_metadata(message.text)
-    caption += f"\n\n**(🔥 DOWNLOAD VIDEO 🔥)[https://t.me/c/{1989558782}/{video.id}]**"
+    caption += f"\n\n**🔥 [DOWNLOAD VIDEO](https://t.me/c/{1515779942}/{video.id}) 🔥**"
     
     sms.edit_text('**Sending images...**')
-    media = app.send_media_group(-1001989558782, list_img)
+    media = app.send_media_group(-1001737310030, list_img)
     media[-1].edit_caption(caption)
     
     sms.delete()
