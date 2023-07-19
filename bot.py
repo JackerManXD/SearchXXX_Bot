@@ -77,7 +77,7 @@ async def handle_inline_query(client, query):
                 InlineQueryResultArticle(
                     id=str(i),
                     title=data[2],
-                    description=data(3),
+                    description=data[3],
                     input_message_content=InputTextMessageContent(data[0]),
                     thumb_url=data[1]
                 )
