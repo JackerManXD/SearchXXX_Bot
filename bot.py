@@ -1,15 +1,16 @@
 from pyrogram.methods.utilities.idle import idle
 from pyrogram import Client, filters
-from pyrogram.enums import ChatMembersFilter
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 from bs4 import BeautifulSoup
 from asyncio import sleep as asyncsleep
 from aiohttp import ClientSession
 from aiohttp import web
 from os import getenv
+from shutil import rmtree
 from os.path import exists
 from requests import get
 import re
+from tools import download, extractImg, extractSeconds
 
 PORT = getenv('PORT')
 NAME_APP = getenv("NAME_APP")
@@ -18,23 +19,36 @@ API_ID = getenv("API_ID")
 BOT_TOKEN = getenv("BOT_TOKEN")
 
 if exists('./Debug.py'):
-    from Debug import DATABASE, BOT_TOKEN, PORT, API_HASH, API_ID
+    from Debug import BOT_TOKEN, PORT, API_HASH, API_ID
     print("MODO DEBUG")
     DEBUG = True
 else:
     print("MODO ONLINE")
     DEBUG = False
 
-app = Client(name=NAME_APP, api_hash=API_HASH,
+app = Client(name='searchxxx', api_hash=API_HASH,
              api_id=API_ID, bot_token=BOT_TOKEN)
 
 # =============================================================== RESPUESTAS
 
-
 @app.on_message(filters.regex('https://www.xnxx.com'))
 async def mostrar_info(app, message):
-    await message.reply(show_metadata(message.text), quote=True)
-
+    sms = await message.reply('**Downloading video...**')
+    file = download(message.text)
+    
+    await sms.edit_text('Uploading video...')
+    video = await app.send_video(-1001989558782, file[0], duration=extractSeconds(file[0]), thumb=file[1])
+    
+    await sms.edit_text('**Extracting images...**')
+    list_img = extractImg(file[0], message)
+    
+    await sms.edit_text('**Sending images...**')
+    media = await app.send_media_group(-1001989558782, list_img)
+    await media[-1].edit_caption(show_metadata(message.text))
+    
+    print(f"https://t.me/c/{1989558782}/{video.id}")
+    await sms.delete()
+    rmtree(message.from_user.username)
 
 @app.on_inline_query()
 async def handle_inline_query(client, query):
@@ -63,7 +77,7 @@ async def handle_inline_query(client, query):
                 InlineQueryResultArticle(
                     id=str(i),
                     title=data[2],
-                    description=f'Página: {enlaces[1]}',
+                    description=data(3),
                     input_message_content=InputTextMessageContent(data[0]),
                     thumb_url=data[1]
                 )
@@ -102,8 +116,30 @@ def scrape_links(search_query):
                 str(element).split('<a href="')[-1].split('"')[0]
             img = str(element).split('data-src="')[-1].split('"')[0]
             name = link.split('/')[-1].replace('_', ' ').capitalize()
+            
+            html = get(link).content
+            soup = BeautifulSoup(html, "html.parser")
+            info = soup.find('div', class_='clear-infobar')
+            txt = ''
+            txt += '**Título: ' + f"`{info.find('strong').text}`**\n"
 
-            all.add((link, img, name))
+            patronmin = r'(\d+)\s*(min)'
+            patronsec = r'(\d+)\s*(sec)'
+
+            metadata = info.find('span', class_='metadata').text.replace(
+                '\t', '').split('-')
+
+            if metadata[0].replace('\n', '').endswith('min'):
+                txt += '**Duración: ' + '`' + \
+                    re.findall(patronmin, metadata[0])[0][0] + ' Min`**\n'
+            elif metadata[0].replace('\n', '').endswith('sec'):
+                txt += '**Duración: ' + '`' + \
+                    re.findall(patronsec, metadata[0])[0][0] + ' Sec`**\n'
+
+            txt += '**Resolución: ' + '`' + metadata[1].replace(' ', '') + '`**\n'
+            txt += '**Vistas: ' + '`' + metadata[2].replace(' ', '') + '`**\n\n'
+
+            all.add((link, img, name, txt))
 
     return all, pag
 

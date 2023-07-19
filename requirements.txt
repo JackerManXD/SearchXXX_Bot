@@ -3,3 +3,4 @@ Pyrogram==2.0.93
 TgCrypto
 requests
 beautifulsoup4
+yt_dlp
