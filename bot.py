@@ -31,8 +31,18 @@ app = Client(name='searchxxx', api_hash=API_HASH,
 
 # =============================================================== RESPUESTAS
 
-@app.on_message(filters.regex('https://www.xnxx.com'))
+@app.on_message(filters.regex('https://www.xnxx.com') & filters.user('KOD_16'))
 def mostrar_info(app, message):
+    """
+    La función `mostrar_info` descarga un video, lo sube a un canal de Telegram, extrae imágenes del
+    video, envía las imágenes a otro canal de Telegram y elimina los archivos temporales.
+    
+    :param app: El parámetro "app" es probablemente una instancia de un cliente de Telegram, como la
+    clase `TelegramClient` de la biblioteca `Telethon`. Se utiliza para interactuar con la API de
+    Telegram y realizar acciones como enviar mensajes, cargar medios, etc
+    :param message: El parámetro `mensaje` es un objeto que representa el mensaje recibido por la
+    aplicación. Contiene información como el texto del mensaje, el remitente y otros metadatos
+    """
     sms = message.reply('**Downloading video...**')
     file = download(message.text)
     
@@ -118,8 +128,6 @@ def scrape_links(search_query):
                 str(element).split('<a href="')[-1].split('"')[0]
             img = str(element).split('data-src="')[-1].split('"')[0]
             name = link.split('/')[-1].replace('_', ' ').capitalize()
-            patronmin = r'(\d+)\s*(min)'
-            patronsec = r'(\d+)\s*(sec)'
 
             all.add((link, img, name))
 
@@ -140,7 +148,7 @@ def show_metadata(url: str):
     soup = BeautifulSoup(html, "html.parser")
     info = soup.find('div', class_='clear-infobar')
     txt = ''
-    txt += '**Título: ' + f"`{info.find('strong').text}`**\n"
+    txt += '🎬 **Title: ' + f"`{info.find('strong').text}`**\n"
 
     patronmin = r'(\d+)\s*(min)'
     patronsec = r'(\d+)\s*(sec)'
@@ -149,16 +157,16 @@ def show_metadata(url: str):
         '\t', '').split('-')
 
     if metadata[0].replace('\n', '').endswith('min'):
-        txt += '**Duración: ' + '`' + \
+        txt += '⏱️ **Duration: ' + '`' + \
             re.findall(patronmin, metadata[0])[0][0] + ' Min`**\n'
     elif metadata[0].replace('\n', '').endswith('sec'):
-        txt += '**Duración: ' + '`' + \
+        txt += '⏱️ **Duration: ' + '`' + \
             re.findall(patronsec, metadata[0])[0][0] + ' Sec`**\n'
 
-    txt += '**Resolución: ' + '`' + metadata[1].replace(' ', '') + '`**\n'
-    txt += '**Vistas: ' + '`' + metadata[2].replace(' ', '') + '`**\n\n'
+    txt += '**📺 Resolution: ' + '`' + metadata[1].replace(' ', '') + '`**\n'
+    txt += '**🌎 Views: ' + '`' + metadata[2].replace(' ', '') + '`**\n\n'
 
-    txt += '**Tags: **'
+    txt += '**🏷️ Tags: **'
     for i in soup.find_all('a', class_='is-keyword'):
         txt += '#' + i.text.replace(' ', '_') + ' '
 
