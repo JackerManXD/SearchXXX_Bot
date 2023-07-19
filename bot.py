@@ -32,22 +32,24 @@ app = Client(name='searchxxx', api_hash=API_HASH,
 # =============================================================== RESPUESTAS
 
 @app.on_message(filters.regex('https://www.xnxx.com'))
-async def mostrar_info(app, message):
-    sms = await message.reply('**Downloading video...**')
+def mostrar_info(app, message):
+    sms = message.reply('**Downloading video...**')
     file = download(message.text)
     
-    await sms.edit_text('Uploading video...')
-    video = await app.send_video(-1001989558782, file[0], duration=extractSeconds(file[0]), thumb=file[1])
+    sms.edit_text('Uploading video...')
+    video = app.send_video(-1001989558782, file[0], duration=extractSeconds(file[0]), thumb=file[1])
     
-    await sms.edit_text('**Extracting images...**')
+    sms.edit_text('**Extracting images...**')
     list_img = extractImg(file[0], message)
     
-    await sms.edit_text('**Sending images...**')
-    media = await app.send_media_group(-1001989558782, list_img)
-    await media[-1].edit_caption(show_metadata(message.text))
+    caption = show_metadata(message.text)
+    caption += f"\n\n**(🔥 DOWNLOAD VIDEO 🔥)[https://t.me/c/{1989558782}/{video.id}]**"
     
-    print(f"https://t.me/c/{1989558782}/{video.id}")
-    await sms.delete()
+    sms.edit_text('**Sending images...**')
+    media = app.send_media_group(-1001989558782, list_img)
+    media[-1].edit_caption(caption)
+    
+    sms.delete()
     rmtree(message.from_user.username)
 
 @app.on_inline_query()
@@ -77,7 +79,7 @@ async def handle_inline_query(client, query):
                 InlineQueryResultArticle(
                     id=str(i),
                     title=data[2],
-                    description=data[3],
+                    description=f'Page: {enlaces[1]}',
                     input_message_content=InputTextMessageContent(data[0]),
                     thumb_url=data[1]
                 )
@@ -116,30 +118,10 @@ def scrape_links(search_query):
                 str(element).split('<a href="')[-1].split('"')[0]
             img = str(element).split('data-src="')[-1].split('"')[0]
             name = link.split('/')[-1].replace('_', ' ').capitalize()
-            
-            html = get(link).content
-            soup = BeautifulSoup(html, "html.parser")
-            info = soup.find('div', class_='clear-infobar')
-            txt = ''
-            txt += '**Título: ' + f"`{info.find('strong').text}`**\n"
-
             patronmin = r'(\d+)\s*(min)'
             patronsec = r'(\d+)\s*(sec)'
 
-            metadata = info.find('span', class_='metadata').text.replace(
-                '\t', '').split('-')
-
-            if metadata[0].replace('\n', '').endswith('min'):
-                txt += '**Duración: ' + '`' + \
-                    re.findall(patronmin, metadata[0])[0][0] + ' Min`**\n'
-            elif metadata[0].replace('\n', '').endswith('sec'):
-                txt += '**Duración: ' + '`' + \
-                    re.findall(patronsec, metadata[0])[0][0] + ' Sec`**\n'
-
-            txt += '**Resolución: ' + '`' + metadata[1].replace(' ', '') + '`**\n'
-            txt += '**Vistas: ' + '`' + metadata[2].replace(' ', '') + '`**\n\n'
-
-            all.add((link, img, name, txt))
+            all.add((link, img, name))
 
     return all, pag
 
