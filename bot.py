@@ -56,7 +56,7 @@ def mostrar_info(app, message):
     caption += f"\n\n**🔥 [DOWNLOAD VIDEO](https://t.me/c/{1515779942}/{video.id}) 🔥**"
     
     sms.edit_text('**Sending images...**')
-    media = app.send_media_group(-1001737310030, list_img)
+    media = app.send_media_group(message.chat.id, list_img)
     media[-1].edit_caption(caption)
     
     sms.delete()
