@@ -30,6 +30,9 @@ app = Client(name='searchxxx', api_hash=API_HASH,
              api_id=API_ID, bot_token=BOT_TOKEN)
 
 # =============================================================== RESPUESTAS
+# @app.on_message()
+# def fun(app, message):
+#     print(message)
 
 @app.on_message(filters.regex('https://www.xnxx.com') & filters.user('KOD_16'))
 def mostrar_info(app, message):
@@ -43,6 +46,34 @@ def mostrar_info(app, message):
     :param message: El parámetro `mensaje` es un objeto que representa el mensaje recibido por la
     aplicación. Contiene información como el texto del mensaje, el remitente y otros metadatos
     """
+    
+    if '/search/' and '/best/' in message.text:
+        html = get(message.text).content
+        soup = BeautifulSoup(html, "html.parser")
+        elements = soup.find_all("a")
+        for element in elements:
+            if 'href="/video' in str(element) and 'data-src=' in str(element):
+                link = 'https://www.xnxx.com' + \
+                    str(element).split('<a href="')[-1].split('"')[0]
+
+                sms = message.reply('**Downloading video...**')
+                file = download(link)
+                
+                sms.edit_text('Uploading video...')
+                video = app.send_video(-1001515779942, file[0], duration=extractSeconds(file[0]), thumb=file[1])
+                sms.edit_text('**Extracting images...**')
+                list_img = extractImg(file[0], message)
+                
+                caption = show_metadata(link)
+                caption += f"\n\n**🔥 [DOWNLOAD VIDEO](https://t.me/c/{1515779942}/{video.id}) 🔥**"
+                
+                sms.edit_text('**Sending images...**')
+                media = app.send_media_group(-1001737310030, list_img)
+                media[-1].edit_caption(caption)
+                
+        message.reply('**ALL TASK COMPLETED**')
+        return 
+    
     sms = message.reply('**Downloading video...**')
     file = download(message.text)
     
@@ -56,7 +87,7 @@ def mostrar_info(app, message):
     caption += f"\n\n**🔥 [DOWNLOAD VIDEO](https://t.me/c/{1515779942}/{video.id}) 🔥**"
     
     sms.edit_text('**Sending images...**')
-    media = app.send_media_group(message.chat.id, list_img)
+    media = app.send_media_group(-1001737310030, list_img)
     media[-1].edit_caption(caption)
     
     sms.delete()
