@@ -47,7 +47,7 @@ def mostrar_info(app, message):
     aplicación. Contiene información como el texto del mensaje, el remitente y otros metadatos
     """
     
-    if '/search/' and '/best/' in message.text:
+    if '/search/' or '/best/' in message.text:
         html = get(message.text).content
         soup = BeautifulSoup(html, "html.parser")
         elements = soup.find_all("a")
